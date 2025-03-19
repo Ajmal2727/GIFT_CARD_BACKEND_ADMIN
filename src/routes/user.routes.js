@@ -1,17 +1,20 @@
 import { Router } from "express";
-import { registerUser, login, getAllUsers} from '../controllers/user.controller.js'
+import { registerUser, loginUser, forgotPassword ,refreshAccessToken,resetPassword,logout} from '../controllers/user.controller.js'
 import { verifyToken } from "../middleware/auth.middleware.js";
-// import { upload } from "../helper/multer.helper.js";
 
 export const userRoute = Router();
 
 
 userRoute.route('/register').post(registerUser);
-userRoute.route('/login').post(login);
-userRoute.route('/get-all-users').get(getAllUsers);
-
+userRoute.route('/login').post(loginUser);
+userRoute.route('/forgot-password').post(forgotPassword);
+userRoute.route('/reset-password').put(resetPassword);
+userRoute.route('/refresh').get(refreshAccessToken);
+userRoute.route('/logout').get(logout);
 
 // protected routes
-// userRoute.use(verifyToken);
+userRoute.use(verifyToken);
+
+
 
 

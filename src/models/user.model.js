@@ -1,53 +1,66 @@
 import mongoose from "mongoose";
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import { saltOrRounds } from '../constant.js';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-const userSchema = new mongoose.Schema({
+const gcuserSchema = new mongoose.Schema({
+    fullName: {
+        type: String,
+        required: true,
+    
+    },
     userName: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
+      
     },
-    userImage: { type: String }, 
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
+    },
+    phone: {
+        type: String,
+        required: true,
+    },
+    password: {
+        type: String,
+        required: true,
     },
     country: {
         type: String,
-        required: true
+        // required: true,
     },
-    mobileNumber: {
-        type: String,
-        required: true
+    currency: {
+        code: { type: String, required: true },
+        symbol: { type: String, required: true }
     },
+    refreshToken: { type: String }, // Storing refresh tokens
+}, {
+    timestamps: true
+});
 
-    password: {
-        type: String,
-        required: true
-    },
-    refreshToken: {
-        type: String,
-    },
-    dob: {
-        type: Date,
-        default: null
-    },
-},
-    { timestamps: true }
-);
-
-
-userSchema.methods.generateAccessToken = function () {
+// Hash password before saving
+gcuserSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
+    
+    try {
+        // const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, 10);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+gcuserSchema.methods.generateAccessToken = function () {
     if (!process.env.ACCESS_TOKEN_SECRET || !process.env.ACCESS_TOKEN_EXPIRY) {
         throw new Error("Missing JWT secret or expiry in environment variables");
     }
 
     return jwt.sign(
         {
-            userId: this._id, // Ensure _id is correctly included
-            email: this.email, // Including email for reference
-            userIdentity: this.userIdentity // Adding userIdentity for role-based checks
+            userId: this._id,
+            email: this.email,
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
@@ -56,13 +69,14 @@ userSchema.methods.generateAccessToken = function () {
     );
 };
 
-userSchema.methods.generateRefreshToken = function () {
+gcuserSchema.methods.generateRefreshToken = function () {
+    if (!process.env.REFRESH_TOKEN_SECRET || !process.env.REFRESH_TOKEN_EXPIRY) {
+        throw new Error("Missing JWT secret or expiry in environment variables");
+    }
     return jwt.sign(
         {
             _id: this._id,
             email: this.email, // Including email for reference
-            userIdentity: this.userIdentity // Adding userIdentity for role-based checks
-
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
@@ -71,18 +85,12 @@ userSchema.methods.generateRefreshToken = function () {
     )
 }
 
-userSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, saltOrRounds);
-    next();
-});
-
-  
-
-userSchema.methods.isPasswordCorrect = async function (passowrd) {
-    return await bcrypt.compare(passowrd, this.password);
+gcuserSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password);
 };
 
 
-const User = new mongoose.model("Admin", userSchema);
+
+const User = mongoose.model("User", gcuserSchema);
+
 export default User;

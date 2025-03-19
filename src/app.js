@@ -2,11 +2,11 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";  // ✅ Import body-parser correctly
-import { userRoute } from "./routes/user.routes.js";
+import { adminRoute } from "./routes/admin.routes.js";
 import { corsOptions } from "./constant.js";
 import compression from 'compression';
 import { cardRoute } from "./routes/card.routes.js";
-
+import { userRoute } from "./routes/user.routes.js";
 const app = express();
 app.use(compression())
 
@@ -44,8 +44,9 @@ app.use(cors(corsOptions));
 // });
 
 // ✅ Define API Routes AFTER setting body-parser limits
-app.use("/api/user", userRoute);
+app.use("/api/admin", adminRoute);
 app.use("/api/card", cardRoute);
+app.use("/api/user", userRoute);
 
 
 app.get("/api/test", (req, res) => {

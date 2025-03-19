@@ -4,10 +4,10 @@ import Card from "../models/card.model.js"
 
 export const createCard = async (req, res) => {
     try {
-        const { name, desc, price, code, quantity, img } = req.body;
-
+        const { name, desc, price, code, quantity , categories } = req.body;
+         const cardImg = req?.file?.path;
         // Validate required fields
-        if (!name || !desc || !price || !code || !quantity || !img) {
+        if (!name || !desc || !price || !code || !quantity ) {
             return res.status(406).json({
                 statusCode: 406,
                 success: false,
@@ -16,7 +16,7 @@ export const createCard = async (req, res) => {
         }
 
         // Upload image to Cloudinary
-        const uploadedImage = await uploadOnCloudinary(img);
+        const uploadedImage = await uploadOnCloudinary(cardImg);
 
         // Create and save the card
         const card = new Card({
@@ -25,7 +25,8 @@ export const createCard = async (req, res) => {
             price,
             code,
             quantity,
-            img: uploadedImage.url, // Save uploaded image URL
+            img: uploadedImage.url,
+            categories
         });
 
         await card.save();
