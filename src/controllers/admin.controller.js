@@ -119,17 +119,7 @@ const login = async (req, res) => {
       });
   
       await user.save(); // Triggers pre-save middleware
-     // Send email after successful registration
-    //  try {
-    //   await sendMail({
-    //     to: email,
-    //     subject: "Welcome to Our Platform",
-    //     text: `Hi ${userName},\n\nThank you for registering with us.\n\nBest regards,\nYour Team`,
-    //   });
-    //   console.log("Email sent successfully");
-    // } catch (emailError) {
-    //   console.error("Error sending email:", emailError);
-    // }  
+    
     
     return res.status(201).json({
         statusCode: 201,
@@ -161,5 +151,30 @@ const getAllUsers = async(req,res) => {
   }
 }
 
+const logout = async (req, res) => {
+  try {
+    const userId = req?.user?.userId; // Get user ID from auth middleware
+    console.log(`Logging out user: ${userId}`); // ✅ Use userId for debugging
 
-export {login , registerUser , getAllUsers}
+
+    res
+      .clearCookie("accessToken")
+      .clearCookie("refreshToken")
+      .status(200)
+      .json({
+        success: true,
+        statusCode: 200,
+        message: "User logged out successfully",
+      });
+  } catch (error) {
+    console.error("Error during logout:", error);
+    res.status(500).json({
+      success: false,
+      statusCode: 500,
+      success: false,
+      message: "server error in logout user",
+    });
+  }
+};
+
+export {login , registerUser , getAllUsers,logout}

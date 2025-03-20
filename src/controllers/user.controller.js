@@ -3,7 +3,8 @@ import { sendEmail } from "../helper/email.helper.js";
 import { getCurrencyByCountry } from "../helper/country.helper.js";
 
 const registerUser = async (req, res) => {
-    const { fullName, userName, email, phone, password,country } = req.body;
+  console.log(req.body.formData)
+    const { fullName, userName, email, phone, password,country } = req.body.formData;
     if (!fullName || !userName || !email || !phone || !password ) {
         return res.status(406).json({
             statusCode: 406,
@@ -317,6 +318,88 @@ const refreshAccessToken = async (req, res) => {
     }
   };
 
+  const getAllUsers = async(req,res) => {
+    try {
+        const user = await User.find({})
+        if(!user){
+          return res.status(404).json({statusCode:404,success:false , message:"User not found"})
+        }
+        return res.status(200).json({statusCode:200,success:true , data : user})
+  
+    } catch (error) {
+      console.log(error)
+      
+    }
+  }
 
-export { registerUser, loginUser ,forgotPassword,refreshAccessToken,resetPassword,logout};
+  const updateUser = async (req, res) => {
+    const { id } = req.params;
+    const updateData = req.body;
+    console.log("updateData : ",updateData)
+    try {
+        // Find user by ID and update
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                statusCode: 404,
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        return res.status(200).json({
+            statusCode: 200,
+            success: true,
+            message: "User updated successfully",
+            data: updatedUser,
+        });
+    } catch (error) {
+        console.error("Error updating user:", error);
+        return res.status(500).json({
+            statusCode: 500,
+            success: false,
+            message: "Server error in updating user",
+        });
+    }
+};
+
+
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const deletedUser = await User.findByIdAndDelete(id);
+
+      if (!deletedUser) {
+          return res.status(404).json({
+              statusCode: 404,
+              success: false,
+              message: "User not found",
+          });
+      }
+
+      return res.status(200).json({
+          statusCode: 200,
+          success: true,
+          message: "User deleted successfully",
+          data: deletedUser,
+      });
+  } catch (error) {
+      console.error("Error deleting user:", error);
+      return res.status(500).json({
+          statusCode: 500,
+          success: false,
+          message: "Server error in deleting user",
+      });
+  }
+};
+
+
+  
+export { registerUser, loginUser ,forgotPassword,refreshAccessToken,resetPassword,logout , getAllUsers , updateUser , deleteUser};
 

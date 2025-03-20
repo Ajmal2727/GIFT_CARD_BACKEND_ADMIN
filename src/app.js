@@ -7,6 +7,7 @@ import { corsOptions } from "./constant.js";
 import compression from 'compression';
 import { cardRoute } from "./routes/card.routes.js";
 import { userRoute } from "./routes/user.routes.js";
+import { transactionRoute } from "./routes/transaction.routes.js";
 const app = express();
 app.use(compression())
 
@@ -47,6 +48,7 @@ app.use(cors(corsOptions));
 app.use("/api/admin", adminRoute);
 app.use("/api/card", cardRoute);
 app.use("/api/user", userRoute);
+app.use("/api/transaction", transactionRoute);
 
 
 app.get("/api/test", (req, res) => {

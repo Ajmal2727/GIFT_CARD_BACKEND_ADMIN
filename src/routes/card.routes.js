@@ -4,7 +4,7 @@ import { upload } from "../helper/multer.helper.js";
 export const cardRoute = Router();
 
 cardRoute.route("/create-card").post(upload.single('img'),createCard);
-cardRoute.route("/update-card/:id").put(updateCard);
+cardRoute.route("/update-card/:id").put(upload.single('img'),updateCard);
 cardRoute.route("/delete-card/:id").delete(deleteCard);
 cardRoute.route("/get-all-cards").get(getAllGiftCards);
 

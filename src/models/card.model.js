@@ -2,6 +2,7 @@
 import mongoose from "mongoose"
 
 const cardSchema = new mongoose.Schema({
+    code: { type: String, unique: true },
     name:{
         type:String,
         required:true
@@ -11,10 +12,6 @@ const cardSchema = new mongoose.Schema({
         required:true
     },
     price:{
-        type:String,
-        required:true
-    },
-    code:{
         type:String,
         required:true
     },
@@ -30,6 +27,9 @@ const cardSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    expiryDate: Date,
+    issuedTo: String, // User email
+    isUsed: { type: Boolean, default: false },
 });
 
 const cardModel = new mongoose.model("Card" , cardSchema)
