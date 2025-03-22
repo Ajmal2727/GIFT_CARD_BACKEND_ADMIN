@@ -8,7 +8,6 @@ const transactionSchema = new mongoose.Schema({
   transactionId: { type: String, required: true },
   utrId: { type: String }, 
   paymentScreenshot: { type: String, required: true },
-  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
   createdAt: { type: Date, default: Date.now },
 });
 

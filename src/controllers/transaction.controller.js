@@ -59,7 +59,7 @@ export const getTransactionByStatus = async (req, res) => {
 
 export const getAllTransaction = async (req, res) => {
     try {
-        const transaction = await Transaction.find({});
+        const transaction = await Transaction.find({})
 
         if(!transaction){
             return res.status(200).json({statusCode:404 ,success: false, message: "Transaction not found" });

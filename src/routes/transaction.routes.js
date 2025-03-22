@@ -8,4 +8,4 @@ transactionRoute.route("/create-transaction").post(upload.single('paymentScreens
 transactionRoute.route("/get-transaction/:id").get(getTransactionByUserId);
 transactionRoute.route("/get-transaction-by-status/:status").get(getTransactionByStatus);
 transactionRoute.route("/get-all-transactions").get(getAllTransaction);
-transactionRoute.route("/update-transactions/:transactionId").get(updateTransactionStatus);
+transactionRoute.route("/update-transactions/:transactionId").put(updateTransactionStatus);
