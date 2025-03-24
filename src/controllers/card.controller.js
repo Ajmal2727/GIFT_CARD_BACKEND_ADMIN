@@ -124,6 +124,35 @@ export const getAllGiftCards = async(req,res) => {
     }
 }
 
+export const getGiftCardById = async (req, res) => {
+    try {
+      const { id } = req.params; // Extract id from URL
+      const card = await Card.findById(id);
+  
+      if (!card) {
+        return res.status(404).json({
+          statusCode: 404,
+          success: false,
+          message: "Card not found",
+        });
+      }
+  
+      return res.status(200).json({
+        statusCode: 200,
+        success: true,
+        data: card,
+      });
+    } catch (error) {
+      console.error("Error fetching card by ID:", error);
+      return res.status(500).json({
+        statusCode: 500,
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  };
+  
+
 export const getCategoriesGiftCards = async(req, res) => {
     try {
         const { category } = req.params;

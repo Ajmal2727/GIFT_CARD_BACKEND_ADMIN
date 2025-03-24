@@ -4,7 +4,7 @@ import { getCurrencyByCountry } from "../helper/country.helper.js";
 
 const registerUser = async (req, res) => {
   console.log(req.body.formData)
-    const { fullName, userName, email, phone, password,country } = req.body.formData;
+    const { fullName, userName, email, phone, password,country } = req.body;
     if (!fullName || !userName || !email || !phone || !password ) {
         return res.status(406).json({
             statusCode: 406,
