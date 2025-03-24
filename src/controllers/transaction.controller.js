@@ -1,34 +1,66 @@
 import { uploadOnCloudinary } from "../helper/cloudinary.helper.js";
 import Transaction from "../models/transaction.model.js";
+import Order from "../models/orders.model.js"
+import Notification from "../models/notification.model.js";
 
-
-export const createTransaction = async(req,res) => {
+export const createTransaction = async (req, res) => {
+    console.log(req.body)
     try {
-        const { userId, paymentMethod, amount, transactionId, utrId } = req.body;
-        if (!userId || !paymentMethod || !amount || !transactionId) {
-          return res.status(400).json({ success: false, message: "Missing required fields" });
-        }
-    
-        // Upload payment screenshot to Cloudinary or S3
-        const screenshotUrl = await uploadOnCloudinary(req?.file?.path);
-    
-        const transaction = new Transaction({
-          userId,
-          paymentMethod,
-          amount,
-          transactionId,
-          utrId: paymentMethod === "upi" || paymentMethod === "bank" ? utrId : undefined,
-          paymentScreenshot: screenshotUrl.url,
-        });
-    
-        await transaction.save();
-        return res.status(201).json({ success: true, message: "Transaction submitted successfully", transaction });
-    
-      } catch (error) {
-        console.error("Error processing transaction:", error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
+      const { userId, paymentMethod, transactionId, utrId, recipientEmail,recipientFullName,totalAmount  } = req.body;
+      const items = JSON.parse(req.body.items);
+
+      if (!userId || !paymentMethod || !totalAmount || !transactionId || !items || items.length === 0) {
+        return res.status(400).json({ success: false, message: "Missing required fields" });
       }
-}
+  
+      // Upload payment screenshot
+      const screenshotUrl = req.file ? await uploadOnCloudinary(req.file.path) : null;  
+      // Create the transaction
+      const transaction = new Transaction({
+        userId,
+        paymentMethod,
+        amount:totalAmount,
+        transactionId,
+        utrId: (paymentMethod === "upi" || paymentMethod === "bank") ? utrId : undefined,
+        paymentScreenshot: screenshotUrl?.url,
+        status: "pending"
+      });
+  
+      await transaction.save();
+  
+      // Create the order linked to the transaction
+    //   const totalAmount = items.reduce((acc, item) => acc + item.giftCardAmount * item.quantity, 0);
+      const order = new Order({
+        userId,
+        transactionId: transaction._id,
+        items,
+        totalAmount,
+        recipientEmail,
+        recipientFullName,
+        status: "pending"
+      });
+  
+      await order.save();
+
+      await Notification.create({
+        userId,
+        message: "Your order has been placed successfully.",
+      });
+  
+      return res.status(201).json({
+        success: true,
+        message: "Transaction and order created successfully",
+        transaction,
+        order
+      });
+  
+    } catch (error) {
+      console.error("Error processing transaction and order:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+  };
+
+
 
 export const getTransactionByUserId = async (req,res) => {
     try {
@@ -108,6 +140,13 @@ export const updateTransactionStatus = async (req, res) => {
             });
         }
 
+        if (status === "approved") {
+            await Notification.create({
+              userId: updatedTransaction._id,
+              message: "Your order has been approved. Please check your account.",
+            });
+          }
+          
         return res.status(200).json({
             statusCode:200,
             success: true,

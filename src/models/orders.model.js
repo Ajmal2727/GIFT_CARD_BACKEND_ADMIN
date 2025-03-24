@@ -5,16 +5,15 @@ const orderSchema = new mongoose.Schema({
   transactionId: { type: mongoose.Schema.Types.ObjectId, ref: "Transaction", required: true },
   items: [
     {
-      giftCardId: { type: mongoose.Schema.Types.ObjectId, ref: "GiftCard", required: true },
-      giftCardName: { type: String, required: true },
-      giftCardAmount: { type: Number, required: true },
+      _id: { type: mongoose.Schema.Types.ObjectId, ref: "GiftCard", required: true },
+      name: { type: String, required: true },
+      price: { type: Number, required: true },
       quantity: { type: Number, required: true, min: 1 },
     }
   ],
   totalAmount: { type: Number, required: true }, // Store total order amount
   recipientEmail: { type: String, required: true },
-  message: { type: String },
-  status: { type: String, enum: ["pending", "completed", "cancelled"], default: "pending" },
+  recipientFullName: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -8,6 +8,8 @@ import compression from 'compression';
 import { cardRoute } from "./routes/card.routes.js";
 import { userRoute } from "./routes/user.routes.js";
 import { transactionRoute } from "./routes/transaction.routes.js";
+import { orderRoute } from "./routes/orders.routes.js";
+import { notificationRoute } from "./routes/notification.routes.js";
 const app = express();
 app.use(compression())
 
@@ -49,6 +51,8 @@ app.use("/api/admin", adminRoute);
 app.use("/api/card", cardRoute);
 app.use("/api/user", userRoute);
 app.use("/api/transaction", transactionRoute);
+app.use("/api/order", orderRoute);
+app.use("/api/notification", notificationRoute);
 
 
 app.get("/api/test", (req, res) => {
