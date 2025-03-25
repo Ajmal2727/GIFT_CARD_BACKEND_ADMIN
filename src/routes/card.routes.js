@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { createCard ,updateCard , deleteCard, getAllGiftCards,getCategoriesGiftCards,getGiftCardById} from "../controllers/card.controller.js";
-import { createCard ,updateCard , deleteCard, getAllGiftCards,getCategoriesGiftCards,getGiftCardById} from "../controllers/card.controller.js";
+// import { createCard ,updateCard , deleteCard, getAllGiftCards,getCategoriesGiftCards,getGiftCardById} from "../controllers/card.controller.js";
 import { upload } from "../helper/multer.helper.js";
 export const cardRoute = Router();
 

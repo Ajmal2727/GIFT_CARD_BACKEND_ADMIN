@@ -174,16 +174,16 @@ export const getCategoriesGiftCards = async(req, res) => {
       }
 }
 
-export const getGiftCardById = async(req, res) => {
-    try {
-        const card = await Card.findById(req.params.id);
-        if(card.length === 0) {
-            return res.status(404).json({statusCode:404,success:false,message:"Card not found"})
-        }
-        return res.status(200).json({statusCode:200,success:true,data:card});
-    } catch (error) {
-        console.log(error)
+// export const getGiftCardById = async(req, res) => {
+//     try {
+//         const card = await Card.findById(req.params.id);
+//         if(card.length === 0) {
+//             return res.status(404).json({statusCode:404,success:false,message:"Card not found"})
+//         }
+//         return res.status(200).json({statusCode:200,success:true,data:card});
+//     } catch (error) {
+//         console.log(error)
         
-    }
+//     }
 
-}
+// }

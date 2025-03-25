@@ -1,6 +1,8 @@
 import User from "../models/user.model.js";
 import { sendEmail } from "../helper/email.helper.js";
 import { getCurrencyByCountry } from "../helper/country.helper.js";
+import crypto from "node:crypto"; 
+
 
 const registerUser = async (req, res) => {
   console.log(req.body.formData)
@@ -27,6 +29,9 @@ const registerUser = async (req, res) => {
         const currency = getCurrencyByCountry(country);
         console.log(`Currency for ${country}:`, currency); 
 
+       const  verificationToken = crypto.randomBytes(32).toString("hex");
+
+
         // Create new user
         const newUser = new User({
             fullName,
@@ -35,7 +40,8 @@ const registerUser = async (req, res) => {
             phone,
             password,
             country,
-            currency
+            currency,
+            verificationToken
         });
 
         await newUser.save();
@@ -151,7 +157,8 @@ const forgotPassword = async (req, res) => {
 
         // Send Reset Email
         const fullName = user.fullName || `${user.firstName} ${user.lastName}` || "User";
-        await sendEmail(email, fullName);
+        console.log("user", user)
+        await sendEmail(email, fullName, user?.verificationToken);
 
 
         return res.status(200).json({
@@ -398,7 +405,48 @@ const deleteUser = async (req, res) => {
       });
   }
 };
-
+export const verifyUserToken = async (req, res) => {
+    try {
+      const { token } = req.params;
+  
+      // Find user with the given token
+      const user = await User.findOne({ verificationToken: token });
+  
+      if (!user) {
+        return res.status(400).json({
+          statusCode: 400,
+          success: false,
+          message: "Invalid or expired verification link",
+        });
+      }
+  
+    //   if (user.verificationToken === null) {
+    //     return res.status(400).json({
+    //       statusCode: 200,
+    //       success: false,
+    //       message: "User already Verified please login",
+    //     });
+    //   }
+      const newVerifivicationToken = crypto.randomBytes(32).toString("hex");
+      // Update the user's verification status
+      user.verificationToken = newVerifivicationToken; // 🔹 Remove the token after verification
+      await user.save();
+  
+      return res.status(200).json({
+        statusCode: 200,
+        success: true,
+        message: "user verified successfully.",
+        data: { userId:user?._id}
+      });
+    } catch (error) {
+      console.error("Error in verifyUser:", error);
+      return res.status(500).json({
+        statusCode: 500,
+        success: false,
+        message: "Server error in token verification",
+      });
+    }
+  };
 
   
 export { registerUser, loginUser ,forgotPassword,refreshAccessToken,resetPassword,logout , getAllUsers , updateUser , deleteUser};

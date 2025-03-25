@@ -40,6 +40,7 @@ const gcuserSchema = new mongoose.Schema({
      enum : ["active", "inactive", "suspended"],
       default: "active"
     },
+    verificationToken: { type: String },
     refreshToken: { type: String }, // Storing refresh tokens
 }, {
     timestamps: true

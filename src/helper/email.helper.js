@@ -20,9 +20,13 @@ transporter.verify((error, success) => {
     }
 });
 
-const sendEmail = async (email, name) => {
+const sendEmail = async (email, name, token) => {
+
     try {
-        const resetLink = `${process.env.FRONTEND_URL}/reset-password`;
+
+
+
+        const resetLink = `${process.env.FRONTEND_LOCAL_URL}/reset-password/${token}`;
         const emailTemplate = getForgotPasswordTemplate(name, resetLink);
 
         const mailOptions = {
