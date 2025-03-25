@@ -24,7 +24,7 @@ const registerUser = async (req, res) => {
         }
 
         const currency = getCurrencyByCountry(country);
-        console.log(`Currency for ${country}:`, currency); // Debugging ke liye console par output
+        console.log(`Currency for ${country}:`, currency); 
 
         // Create new user
         const newUser = new User({

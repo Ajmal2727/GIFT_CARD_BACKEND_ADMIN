@@ -15,6 +15,9 @@ userRoute.route('/logout').get(logout);
 // protected routes
 userRoute.use(verifyToken);
 
-
+// upi
+// bank account
+// usdt
+// bitcoin
 
 
