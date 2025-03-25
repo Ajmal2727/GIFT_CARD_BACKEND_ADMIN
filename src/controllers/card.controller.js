@@ -4,16 +4,20 @@ import Card from "../models/card.model.js"
 
 export const createCard = async (req, res) => {
     try {
-        const { name, desc, price, code, quantity , categories } = req.body;
-         const cardImg = req?.file?.path;
+        const { name, desc, price, code, quantity, categories } = req.body;
+        const cardImg = req?.file?.path;
+
         // Validate required fields
-        if (!name || !desc || !price || !code || !quantity ) {
+        if (!name || !desc || !price || !code || !quantity) {
             return res.status(406).json({
                 statusCode: 406,
                 success: false,
                 message: "Required fields are missing"
             });
         }
+
+        // Ensure price is an array of numbers
+        const priceArray = Array.isArray(price) ? price.map(Number) : [Number(price)];
 
         // Upload image to Cloudinary
         const uploadedImage = await uploadOnCloudinary(cardImg);
@@ -22,7 +26,7 @@ export const createCard = async (req, res) => {
         const card = new Card({
             name,
             desc,
-            price,
+            price: priceArray,
             code,
             quantity,
             img: uploadedImage.url,
@@ -32,7 +36,7 @@ export const createCard = async (req, res) => {
         await card.save();
 
         return res.status(201).json({
-            statusCode: 201,  // Corrected status code
+            statusCode: 201,
             success: true,
             data: card
         });
@@ -47,18 +51,52 @@ export const createCard = async (req, res) => {
 };
 
 
+
 // Update Card
-export  const updateCard =  async (req, res) => {
+export const updateCard = async (req, res) => {
     try {
-        const card = await Card.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!card) {
-            return res.status(404).json({ success: false, message: "Card not found" });
+        const { id } = req.params;
+        let updatedData = { ...req.body };
+
+        // Check if a file is uploaded
+        if (req.file) {
+            const uploadedImage = await uploadOnCloudinary(req.file.path);
+            if (!uploadedImage || !uploadedImage.url) {
+                return res.status(500).json({
+                    statusCode: 500,
+                    success: false,
+                    message: "Error uploading image to Cloudinary",
+                });
+            }
+            updatedData.img = uploadedImage.url; // Save Cloudinary URL in the database
         }
-        res.json({ success: true, card });
+
+        // Update the card
+        const card = await Card.findByIdAndUpdate(id, updatedData, { new: true });
+
+        if (!card) {
+            return res.status(404).json({
+                statusCode: 404,
+                success: false,
+                message: "Card not found",
+            });
+        }
+
+        res.json({
+            statusCode: 200,
+            success: true,
+            data: card,
+        });
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        console.error("Update card error:", error);
+        res.status(500).json({
+            statusCode: 500,
+            success: false,
+            message: "Server error while updating card",
+        });
     }
-}
+};
+
 
 // Delete Card
 export const deleteCard = async (req, res) => {
@@ -76,7 +114,7 @@ export const deleteCard = async (req, res) => {
 export const getAllGiftCards = async(req,res) => {
     try {
          const cards = await Card.find({});
-         if(cards){
+         if(!cards){
            return res.status(404).json({statusCode:404,success:false,message:"Card not found"})
          }
          return res.status(200).json({statusCode:200,success:true,data:cards})
@@ -84,4 +122,68 @@ export const getAllGiftCards = async(req,res) => {
         console.log(error)
         
     }
+}
+
+export const getGiftCardById = async (req, res) => {
+    try {
+      const { id } = req.params; // Extract id from URL
+      const card = await Card.findById(id);
+  
+      if (!card) {
+        return res.status(404).json({
+          statusCode: 404,
+          success: false,
+          message: "Card not found",
+        });
+      }
+  
+      return res.status(200).json({
+        statusCode: 200,
+        success: true,
+        data: card,
+      });
+    } catch (error) {
+      console.error("Error fetching card by ID:", error);
+      return res.status(500).json({
+        statusCode: 500,
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  };
+  
+
+export const getCategoriesGiftCards = async(req, res) => {
+    try {
+        const { category } = req.params;
+    
+        if (!category) {
+          return res.status(400).json({ message: "Category is required" });
+        }
+    
+        const giftCards = await Card.find({ categories: category });
+    
+        if (giftCards.length === 0) {
+          return res.status(404).json({ message: "No gift cards found for this category" });
+        }
+    
+        res.status(200).json({statusCode:200,success:true,data:giftCards});
+      } catch (error) {
+        console.error("Error fetching gift cards by category:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+      }
+}
+
+export const getGiftCardById = async(req, res) => {
+    try {
+        const card = await Card.findById(req.params.id);
+        if(card.length === 0) {
+            return res.status(404).json({statusCode:404,success:false,message:"Card not found"})
+        }
+        return res.status(200).json({statusCode:200,success:true,data:card});
+    } catch (error) {
+        console.log(error)
+        
+    }
+
 }
