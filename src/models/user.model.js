@@ -32,8 +32,8 @@ const gcuserSchema = new mongoose.Schema({
         // required: true,
     },
     currency: {
-        code: { type: String, required: true },
-        symbol: { type: String, required: true }
+        code: { type: String },
+        symbol: { type: String}
     },
     status: {
      type: String,

@@ -18,7 +18,7 @@ userRoute.route('/verify-token/:token').get(verifyUserToken);
 
 
 // protected routes
-userRoute.use(verifyToken);
+// userRoute.use(verifyToken);
 
 // upi
 // bank account
