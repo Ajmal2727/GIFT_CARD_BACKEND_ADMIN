@@ -20,16 +20,14 @@ transporter.verify((error, success) => {
     }
 });
 
-const sendEmail = async (email, name) => {
+const sendEmail = async (email, subject,body) => {
     try {
-        const resetLink = `${process.env.FRONTEND_URL}/reset-password`;
-        const emailTemplate = getForgotPasswordTemplate(name, resetLink);
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "🔐 Forgot Your Password - BallysFather",
-            html: emailTemplate,
+            subject,
+            html: body,
         };
 
         const info = await transporter.sendMail(mailOptions);
