@@ -16,7 +16,7 @@ userRoute.route('/delete-user/:id').delete(deleteUser);
 userRoute.route('/get-all-users').get(getAllUsers);
 
 // protected routes
-userRoute.use(verifyToken);
+// userRoute.use(verifyToken);
 
 
 

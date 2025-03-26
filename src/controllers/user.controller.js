@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 import { sendEmail } from "../helper/email.helper.js";
 import { getCurrencyByCountry } from "../helper/country.helper.js";
-
+import axios from "axios"
 const registerUser = async (req, res) => {
   console.log(req.body.formData)
     const { fullName, userName, email, phone, password,country } = req.body;
@@ -58,6 +58,81 @@ const registerUser = async (req, res) => {
 
 
 
+// const loginUser = async (req, res) => {
+//     const { userName, password } = req.body;
+
+//     if (!userName || !password) {
+//         return res.status(406).json({
+//             statusCode: 406,
+//             success: false,
+//             message: "Required fields missing",
+//         });
+//     }
+
+//     try {
+//         const user = await User.findOne({ userName });
+//         if (!user) {
+//             return res.status(404).json({
+//                 statusCode: 404,
+//                 success: false,
+//                 message: "User not found",
+//             });
+//         }
+
+//         // Debugging: Check stored password
+//         console.log("Entered Password:", password);
+//         console.log("Hashed Password from DB:", user.password);
+
+//         // Compare hashed password
+//         const isPasswordValid = await user.isPasswordCorrect(password);
+//         console.log("Password Match Result:", isPasswordValid); 
+//         if (!isPasswordValid) {
+//             return res.status(401).json({
+//                 statusCode: 401,
+//                 success: false,
+//                 message: "Invalid user credentials",
+//             });
+//         }
+//         // Generate Tokens
+//         const accessToken = user.generateAccessToken();
+//         const refreshToken = user.generateRefreshToken();
+
+//         if (!accessToken || !refreshToken) {
+//             return res.status(500).json({
+//                 statusCode: 500,
+//                 success: false,
+//                 message: "Something went wrong while generating tokens",
+//             });
+//         }
+
+//         user.refreshToken = refreshToken;
+//         await user.save({ validateBeforeSave: false });
+
+//         const data = {
+//             accessToken,
+//             userName: user.userName
+//         };
+
+//         res
+//             .status(200)
+//             .cookie("accessToken", accessToken, { httpOnly: true })
+//             .cookie("refreshToken", refreshToken, { httpOnly: true })
+//             .json({
+//                 success: true,
+//                 statusCode: 200,
+//                 message: "Login successful",
+//                 data:user,
+//             });
+//     } catch (error) {
+//         console.error("Error during login:", error);
+//         return res.status(500).json({
+//             statusCode: 500,
+//             success: false,
+//             message: "Server error in user login",
+//         });
+//     }
+// };
+
 const loginUser = async (req, res) => {
     const { userName, password } = req.body;
 
@@ -70,49 +145,48 @@ const loginUser = async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ userName });
+        // Step 1: Check GiftCard DB
+        let user = await User.findOne({ userName });
+
+        // Step 2: If user not found, call Ballyfathers API
         if (!user) {
-            return res.status(404).json({
-                statusCode: 404,
-                success: false,
-                message: "User not found",
-            });
+            console.log("User not found in GiftCard DB. Checking Ballyfathers...");
+            const ballyResponse = await axios.post(
+                "https://ballysfather.com/api/user/login",
+                { userName, password },
+                { headers: { "Content-Type": "application/json" } }
+            );
+            if (ballyResponse.status === 200 && ballyResponse.data.success) {
+                const currency = getCurrencyByCountry(ballyResponse.data.data.country);
+                const newUser = {...ballyResponse.data.data , currency}
+                 return res.status(200).json({success:true,data:newUser})
+            } else {
+                return res.status(401).json({
+                    statusCode: 401,
+                    success: false,
+                    message: "Invalid credentials",
+                });
+            }
         }
 
-        // Debugging: Check stored password
-        console.log("Entered Password:", password);
-        console.log("Hashed Password from DB:", user.password);
-
-        // Compare hashed password
+        // Step 3: Validate password (only for GiftCard users)
         const isPasswordValid = await user.isPasswordCorrect(password);
-        console.log("Password Match Result:", isPasswordValid); 
         if (!isPasswordValid) {
             return res.status(401).json({
                 statusCode: 401,
                 success: false,
-                message: "Invalid user credentials",
+                message: "Invalid credentials",
             });
         }
-        // Generate Tokens
+
+        // Step 4: Generate Tokens
         const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
-
-        if (!accessToken || !refreshToken) {
-            return res.status(500).json({
-                statusCode: 500,
-                success: false,
-                message: "Something went wrong while generating tokens",
-            });
-        }
 
         user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
 
-        const data = {
-            accessToken,
-            userName: user.userName
-        };
-
+        // Step 5: Send Tokens and User Info
         res
             .status(200)
             .cookie("accessToken", accessToken, { httpOnly: true })
@@ -121,11 +195,12 @@ const loginUser = async (req, res) => {
                 success: true,
                 statusCode: 200,
                 message: "Login successful",
-                data:user,
+                data: user,
             });
+
     } catch (error) {
         console.error("Error during login:", error);
-        return res.status(500).json({
+        res.status(500).json({
             statusCode: 500,
             success: false,
             message: "Server error in user login",
