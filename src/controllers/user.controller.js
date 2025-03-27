@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import { sendEmail } from "../helper/email.helper.js";
 import { getCurrencyByCountry } from "../helper/country.helper.js";
+import crypto from "crypto";
 import axios from "axios"
 const registerUser = async (req, res) => {
   console.log(req.body.formData)
