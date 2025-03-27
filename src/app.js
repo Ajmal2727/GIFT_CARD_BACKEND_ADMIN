@@ -14,24 +14,32 @@ import { cartRouter } from "./routes/cart.routes.js";
 
 const app = express();
 
-// Enable compression
-app.use(compression());
-
-// ✅ Set response headers for UTF-8
+// ✅ Explicitly set response headers for UTF-8
 app.use((req, res, next) => {
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Content-Type", "application/json; charset=UTF-8");
   next();
 });
 
-// ✅ Use express.json() with UTF-8 support
-app.use(express.json({ limit: "50mb", type: "application/json" }));
+// ✅ Use express.json() with charset handling
+app.use(
+  express.json({
+    limit: "50mb",
+    type: ["application/json", "application/json; charset=utf-8"], // Accept UTF-8 charset
+  })
+);
 
-// ✅ Use body-parser as a fallback
-app.use(bodyParser.json({ limit: "50mb", type: "application/json" }));
+// ✅ Use body-parser for additional support
+app.use(
+  bodyParser.json({
+    limit: "50mb",
+    type: ["application/json", "application/json; charset=utf-8"], // Accept UTF-8 charset
+  })
+);
+
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
-
 app.use(cookieParser());
 app.use(cors(corsOptions));
+app.use(compression());
 
 // ✅ Define API Routes
 app.use("/api/admin", adminRoute);
