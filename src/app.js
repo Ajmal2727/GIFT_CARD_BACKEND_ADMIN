@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import compression from "compression";
-import bodyParser from "body-parser";
 
 // Import routes
 import { adminRoute } from "./routes/admin.routes.js";
@@ -23,36 +22,66 @@ const corsOptions = {
     'http://localhost:5002'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'charset'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
+
+// Middleware to completely strip charset
+app.use((req, res, next) => {
+  // Modify Content-Type header to remove charset
+  if (req.headers['content-type']) {
+    req.headers['content-type'] = req.headers['content-type']
+      .split(';')[0]
+      .trim();
+  }
+  
+  // Raw body parsing
+  let data = '';
+  req.setEncoding('utf8');
+  req.on('data', (chunk) => {
+    data += chunk;
+  });
+  
+  req.on('end', () => {
+    try {
+      // Try parsing JSON manually
+      req.body = data ? JSON.parse(data) : {};
+      next();
+    } catch (error) {
+      console.error('JSON Parsing Error:', error);
+      next();
+    }
+  });
+});
 
 // Middleware Configuration
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(compression());
 
-// Enhanced JSON Parsing Middleware
+// Fallback JSON Parsing
 app.use((req, res, next) => {
-  // Custom middleware to handle charset and content type
-  if (req.headers['content-type']) {
-    req.headers['content-type'] = req.headers['content-type']
-      .replace('; charset=UTF-8', '')
-      .replace('; charset=utf-8', '');
+  if (!req.body) {
+    try {
+      req.body = req.body || {};
+    } catch (error) {
+      req.body = {};
+    }
   }
   next();
 });
 
-// Flexible JSON Parsing
+// Simplified JSON Parsing
 app.use(express.json({
-  limit: "50mb",
-  strict: true,
-  type: ['application/json']
-}));
-
-app.use(bodyParser.json({
-  limit: "50mb",
-  type: ['application/json']
+  type: ['application/json'],
+  verify: (req, res, buf) => {
+    try {
+      JSON.parse(buf.toString());
+    } catch (error) {
+      console.error('JSON Verification Error:', error);
+      throw new Error('Invalid JSON');
+    }
+  }
 }));
 
 // Logging Middleware
