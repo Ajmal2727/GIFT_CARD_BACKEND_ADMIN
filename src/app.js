@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import compression from "compression";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
+import bodyParser from "body-parser";
 
 // Import routes
 import { adminRoute } from "./routes/admin.routes.js";
@@ -16,47 +15,53 @@ import { cartRouter } from "./routes/cart.routes.js";
 
 const app = express();
 
-// CORS Configuration
+// Comprehensive CORS Configuration
 const corsOptions = {
   origin: [
     'https://ballysgiftcards.com',
-    'http://localhost:3000', // Add development frontend URL
-    // Add any other allowed origins
+    'http://localhost:3000',
+    'http://localhost:5002'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization', 'charset'],
+  credentials: true
 };
-
-// Rate Limiting Configuration
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later'
-});
 
 // Middleware Configuration
 app.use(cors(corsOptions));
-app.use(limiter);
-app.use(helmet()); // Adds security headers
-app.use(compression());
 app.use(cookieParser());
+app.use(compression());
 
-// JSON Parsing with Enhanced Configuration
+// Enhanced JSON Parsing Middleware
+app.use((req, res, next) => {
+  // Custom middleware to handle charset and content type
+  if (req.headers['content-type']) {
+    req.headers['content-type'] = req.headers['content-type']
+      .replace('; charset=UTF-8', '')
+      .replace('; charset=utf-8', '');
+  }
+  next();
+});
+
+// Flexible JSON Parsing
 app.use(express.json({
   limit: "50mb",
   strict: true,
   type: ['application/json']
 }));
 
-// Logging Middleware (Optional, for debugging)
+app.use(bodyParser.json({
+  limit: "50mb",
+  type: ['application/json']
+}));
+
+// Logging Middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// Define API Routes
+// API Routes
 app.use("/api/admin", adminRoute);
 app.use("/api/card", cardRoute);
 app.use("/api/user", userRoute);
@@ -65,10 +70,10 @@ app.use("/api/order", orderRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/cart", cartRouter);
 
-// Test Route with Comprehensive Error Handling
+// Comprehensive Test Route
 app.post("/api/test", (req, res) => {
   try {
-    console.log('Received test data:', req.body);
+    console.log('Received test data:', JSON.stringify(req.body, null, 2));
     res.status(200).json({ 
       message: "API test successful", 
       receivedData: req.body,
@@ -85,10 +90,10 @@ app.post("/api/test", (req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Unhandled Error:', err);
   res.status(500).json({
     message: "Unexpected server error",
-    error: process.env.NODE_ENV === 'production' ? 'An error occurred' : err.message
+    error: err.message
   });
 });
 
