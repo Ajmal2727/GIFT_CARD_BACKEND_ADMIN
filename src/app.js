@@ -14,7 +14,10 @@ import { cartRouter } from "./routes/cart.routes.js";
 
 const app = express();
 
-// Comprehensive CORS Configuration
+// Trust proxy for correct IP and protocol detection
+app.set('trust proxy', true);
+
+// CORS Configuration
 const corsOptions = {
   origin: [
     'https://ballysgiftcards.com',
@@ -22,20 +25,17 @@ const corsOptions = {
     'http://localhost:5002'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Forwarded-For', 'X-Forwarded-Proto'],
   credentials: true
 };
 
-// Middleware to completely strip charset
+// Middleware Configuration
+app.use(cors(corsOptions));
+app.use(cookieParser());
+app.use(compression());
+
+// Raw body parsing middleware
 app.use((req, res, next) => {
-  // Modify Content-Type header to remove charset
-  if (req.headers['content-type']) {
-    req.headers['content-type'] = req.headers['content-type']
-      .split(';')[0]
-      .trim();
-  }
-  
-  // Raw body parsing
   let data = '';
   req.setEncoding('utf8');
   req.on('data', (chunk) => {
@@ -44,34 +44,16 @@ app.use((req, res, next) => {
   
   req.on('end', () => {
     try {
-      // Try parsing JSON manually
       req.body = data ? JSON.parse(data) : {};
-      next();
     } catch (error) {
       console.error('JSON Parsing Error:', error);
-      next();
+      req.body = {};
     }
+    next();
   });
 });
 
-// Middleware Configuration
-app.use(cors(corsOptions));
-app.use(cookieParser());
-app.use(compression());
-
 // Fallback JSON Parsing
-app.use((req, res, next) => {
-  if (!req.body) {
-    try {
-      req.body = req.body || {};
-    } catch (error) {
-      req.body = {};
-    }
-  }
-  next();
-});
-
-// Simplified JSON Parsing
 app.use(express.json({
   type: ['application/json'],
   verify: (req, res, buf) => {
@@ -79,7 +61,6 @@ app.use(express.json({
       JSON.parse(buf.toString());
     } catch (error) {
       console.error('JSON Verification Error:', error);
-      throw new Error('Invalid JSON');
     }
   }
 }));
@@ -87,6 +68,8 @@ app.use(express.json({
 // Logging Middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
   next();
 });
 
@@ -106,7 +89,8 @@ app.post("/api/test", (req, res) => {
     res.status(200).json({ 
       message: "API test successful", 
       receivedData: req.body,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      headers: req.headers
     });
   } catch (error) {
     console.error('Test route error:', error);
