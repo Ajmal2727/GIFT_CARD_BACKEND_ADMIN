@@ -1,53 +1,40 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";  // ✅ Import body-parser correctly
+import compression from "compression";
 import { adminRoute } from "./routes/admin.routes.js";
 import { corsOptions } from "./constant.js";
-import compression from 'compression';
 import { cardRoute } from "./routes/card.routes.js";
 import { userRoute } from "./routes/user.routes.js";
 import { transactionRoute } from "./routes/transaction.routes.js";
 import { orderRoute } from "./routes/orders.routes.js";
 import { notificationRoute } from "./routes/notification.routes.js";
 import { cartRouter } from "./routes/cart.routes.js";
+
 const app = express();
-app.use(compression())
 
-// // ✅ Apply body-parser FIRST before everything else
-// app.use(bodyParser.json({ limit: "50mb" }));  // 🔹 Supports large JSON payloads
+// ✅ Enable compression (should be first)
+app.use(compression());
 
-// ✅ Use express.json() instead of body-parser
+// ✅ Use express.json() (body-parser is not needed for JSON)
 app.use(
   express.json({
-    limit: "50mb", // Keep large payload support
+    limit: "50mb",
+    type: ["application/json", "application/json; charset=utf-8"], // ✅ Fix charset issue
     verify: (req, res, buf) => {
-      req.rawBody = buf.toString(); // Store raw request body as a string
+      req.rawBody = buf.toString(); // Store raw body if needed
     },
   })
 );
 
-
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true })); // 🔹 Supports large form-data
-
-// ✅ Move WebSocket handler AFTER JSON body parsing
-// socketHandler(app);
+// ✅ Use express.urlencoded() for form data (replacing body-parser)
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // ✅ Other middleware
 app.use(cookieParser());
 app.use(cors(corsOptions));
 
-// ✅ Debugging logs
-// app.use((req, res, next) => {
-//   console.log(
-//     `Incoming Request: ${req.method} ${req.url}, Size: ${
-//       req.headers["content-length"] || 0
-//     } bytes`
-//   );
-//   next();
-// });
-
-// ✅ Define API Routes AFTER setting body-parser limits
+// ✅ Define API Routes AFTER middleware
 app.use("/api/admin", adminRoute);
 app.use("/api/card", cardRoute);
 app.use("/api/user", userRoute);
@@ -56,9 +43,9 @@ app.use("/api/order", orderRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/cart", cartRouter);
 
-
+// ✅ Health check route
 app.get("/api/test", (req, res) => {
   res.status(200).json({ message: "API is working!" });
 });
 
-export default app;
+export default app;
