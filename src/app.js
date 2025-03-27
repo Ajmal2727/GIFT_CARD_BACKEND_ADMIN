@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import compression from "compression";
+import bodyParser from "body-parser";
 import { adminRoute } from "./routes/admin.routes.js";
 import { corsOptions } from "./constant.js";
 import { cardRoute } from "./routes/card.routes.js";
@@ -13,28 +14,26 @@ import { cartRouter } from "./routes/cart.routes.js";
 
 const app = express();
 
-// ✅ Enable compression (should be first)
+// Enable compression
 app.use(compression());
 
-// ✅ Use express.json() (body-parser is not needed for JSON)
-app.use(
-  express.json({
-    limit: "50mb",
-    type: ["application/json", "application/json; charset=utf-8"], // ✅ Fix charset issue
-    verify: (req, res, buf) => {
-      req.rawBody = buf.toString(); // Store raw body if needed
-    },
-  })
-);
+// ✅ Set response headers for UTF-8
+app.use((req, res, next) => {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  next();
+});
 
-// ✅ Use express.urlencoded() for form data (replacing body-parser)
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+// ✅ Use express.json() with UTF-8 support
+app.use(express.json({ limit: "50mb", type: "application/json" }));
 
-// ✅ Other middleware
+// ✅ Use body-parser as a fallback
+app.use(bodyParser.json({ limit: "50mb", type: "application/json" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+
 app.use(cookieParser());
 app.use(cors(corsOptions));
 
-// ✅ Define API Routes AFTER middleware
+// ✅ Define API Routes
 app.use("/api/admin", adminRoute);
 app.use("/api/card", cardRoute);
 app.use("/api/user", userRoute);
@@ -43,9 +42,8 @@ app.use("/api/order", orderRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/cart", cartRouter);
 
-// ✅ Health check route
 app.get("/api/test", (req, res) => {
   res.status(200).json({ message: "API is working!" });
 });
 
-export default app;
+export default app;
