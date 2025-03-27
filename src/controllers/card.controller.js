@@ -4,51 +4,63 @@ import Card from "../models/card.model.js"
 
 export const createCard = async (req, res) => {
     try {
-        const { name, desc, price, code, quantity, categories } = req.body;
-        const cardImg = req?.file?.path;
-
-        // Validate required fields
-        if (!name || !desc || !price || !code || !quantity) {
-            return res.status(406).json({
-                statusCode: 406,
-                success: false,
-                message: "Required fields are missing"
-            });
-        }
-
-        // Ensure price is an array of numbers
-        const priceArray = Array.isArray(price) ? price.map(Number) : [Number(price)];
-
-        // Upload image to Cloudinary
-        const uploadedImage = await uploadOnCloudinary(cardImg);
-
-        // Create and save the card
-        const card = new Card({
-            name,
-            desc,
-            price: priceArray,
-            code,
-            quantity,
-            img: uploadedImage.url,
-            categories
+      const { name, desc, price, code, quantity, categories } = req.body;
+      const cardImg = req?.file?.path;
+  
+      // Validate required fields
+      if (!name || !desc || !price || !quantity) {
+        return res.status(406).json({
+          statusCode: 406,
+          success: false,
+          message: "Required fields are missing",
         });
-
-        await card.save();
-
-        return res.status(201).json({
-            statusCode: 201,
-            success: true,
-            data: card
+      }
+  
+      // Ensure price is stored correctly (convert to an array of numbers)
+      const priceArray = Array.isArray(price)
+        ? price.map((p) => Number(p))
+        : price.split(",").map((p) => Number(p.trim()));
+  
+      // Check for invalid prices (e.g., if conversion fails)
+      if (priceArray.some(isNaN)) {
+        return res.status(400).json({
+          statusCode: 400,
+          success: false,
+          message: "Invalid price format",
         });
+      }
+  
+      // Upload image to Cloudinary
+      const uploadedImage = await uploadOnCloudinary(cardImg);
+  
+      // Create and save the card
+      const card = new Card({
+        name,
+        desc,
+        price: priceArray,
+        code,
+        quantity,
+        img: uploadedImage.url,
+        categories,
+      });
+  
+      await card.save();
+  
+      return res.status(201).json({
+        statusCode: 201,
+        success: true,
+        data: card,
+      });
     } catch (error) {
-        console.error("Error in createCard:", error);
-        return res.status(500).json({
-            statusCode: 500,
-            success: false,
-            message: "Server error while creating card"
-        });
+      console.error("Error in createCard:", error);
+      return res.status(500).json({
+        statusCode: 500,
+        success: false,
+        message: "Server error while creating card",
+      });
     }
-};
+  };
+  
 
 
 

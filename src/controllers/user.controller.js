@@ -399,19 +399,48 @@ const refreshAccessToken = async (req, res) => {
     }
   };
 
-  const getAllUsers = async(req,res) => {
+  const getAllUsers = async (req, res) => {
     try {
-        const user = await User.find({})
-        if(!user){
-          return res.status(404).json({statusCode:404,success:false , message:"User not found"})
-        }
-        return res.status(200).json({statusCode:200,success:true , data : user})
+      // Fetch BallysFather users from external API
+      const ballysFatherUsersPromise = axios.get("https://ballysfather.com/api/user/get-users");
   
+      // Fetch Gift Card users from local database
+      const giftCardUsersPromise = User.find({});
+  
+      // Execute both requests in parallel
+      const [ballysFatherResponse, giftCardUsers] = await Promise.all([
+        ballysFatherUsersPromise,
+        giftCardUsersPromise,
+      ]);
+  console.log("giftCardUsers : " , giftCardUsers)
+      // Extract users from BallysFather response
+      const ballysFatherUsers = ballysFatherResponse.data?.data || [];
+  
+      // Merge both user lists
+      const allUsers = [...ballysFatherUsers, ...giftCardUsers];
+  
+      if (allUsers.length === 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          success: false,
+          message: "No users found from both sources.",
+        });
+      }
+  
+      return res.status(200).json({
+        statusCode: 200,
+        success: true,
+        data: allUsers,
+      });
     } catch (error) {
-      console.log(error)
-      
+      console.error("Error fetching users:", error);
+      return res.status(500).json({
+        statusCode: 500,
+        success: false,
+        message: "Internal server error.",
+      });
     }
-  }
+  };
 
   const updateUser = async (req, res) => {
     const { id } = req.params;

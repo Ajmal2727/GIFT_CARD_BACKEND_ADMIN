@@ -31,5 +31,31 @@ const cardSchema = new mongoose.Schema({
     isUsed: { type: Boolean, default: false },
 });
 
+
+const generateUniqueGiftCardCode = async function () {
+    let isUnique = false;
+    let code = "";
+  
+    while (!isUnique) {
+      code = `BALLYS${Math.floor(100000 + Math.random() * 900000)}`;
+      const existingCard = await mongoose.model("Card").findOne({ code });
+      if (!existingCard) isUnique = true;
+    }
+  
+    return code;
+  };
+  
+  // Pre-save hook to auto-generate code and expiryDate
+  cardSchema.pre("save", async function (next) {
+    if (!this.code) {
+      this.code = await generateUniqueGiftCardCode(); // Assign unique gift card code
+    }
+    if (!this.expiryDate) {
+      this.expiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year expiry
+    }
+    next();
+  });
+
+
 const cardModel = mongoose.model("Card", cardSchema);
 export default cardModel;
