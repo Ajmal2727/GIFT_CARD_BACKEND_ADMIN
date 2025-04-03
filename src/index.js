@@ -4,7 +4,7 @@ import app from './app.js';
 
 // dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5002;
 
 // Connect to MongoDB
 connectToDB(process.env.MONGO_URI).then(() => {
