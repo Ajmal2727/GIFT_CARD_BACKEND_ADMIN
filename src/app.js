@@ -11,23 +11,13 @@ import { transactionRoute } from "./routes/transaction.routes.js";
 import { orderRoute } from "./routes/orders.routes.js";
 import { notificationRoute } from "./routes/notification.routes.js";
 import { cartRouter } from "./routes/cart.routes.js";
-
+import {corsOptions} from "./constant.js"
 const app = express();
 
 // Trust proxy for correct IP and protocol detection
 app.set('trust proxy', true);
 
-// CORS Configuration
-const corsOptions = {
-  origin: [
-    'https://ballysgiftcards.com',
-    'http://localhost:3000',
-    'http://localhost:5002'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Forwarded-For', 'X-Forwarded-Proto'],
-  credentials: true
-};
+
 
 // Middleware Configuration
 app.use(cors(corsOptions));
