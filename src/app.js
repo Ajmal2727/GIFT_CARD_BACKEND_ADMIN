@@ -36,33 +36,16 @@ app.use(compression());
 
 // Raw body parsing middleware
 app.use((req, res, next) => {
-  let data = '';
-  req.setEncoding('utf8');
-  req.on('data', (chunk) => {
-    data += chunk;
-  });
-  
-  req.on('end', () => {
-    try {
-      req.body = data ? JSON.parse(data) : {};
-    } catch (error) {
-      console.error('JSON Parsing Error:', error);
-      req.body = {};
-    }
-    next();
-  });
+  if (req.headers['content-type']?.includes('application/json')) {
+    req.headers['content-type'] = 'application/json'; // Force correct content type
+  }
+  next();
 });
 
 // Fallback JSON Parsing
 app.use(express.json({
-  type: ['application/json'],
-  verify: (req, res, buf) => {
-    try {
-      JSON.parse(buf.toString());
-    } catch (error) {
-      console.error('JSON Verification Error:', error);
-    }
-  }
+  type: ['application/json', 'application/json; charset=UTF-8'],
+  limit: '10mb' // Optional: Prevent large payloads from breaking the server
 }));
 
 // Logging Middleware
