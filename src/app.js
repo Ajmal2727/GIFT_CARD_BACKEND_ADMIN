@@ -35,12 +35,9 @@ app.use(cookieParser());
 app.use(compression());
 
 // Raw body parsing middleware
-app.use((req, res, next) => {
-  if (req.headers['content-type']?.includes('application/json')) {
-    req.headers['content-type'] = 'application/json'; // Force correct content type
-  }
-  next();
-});
+app.use(express.json({ limit: '50mb' })); // Parses JSON with increased limit
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Parses URL-encoded data
+
 
 // Fallback JSON Parsing
 app.use(express.json({
