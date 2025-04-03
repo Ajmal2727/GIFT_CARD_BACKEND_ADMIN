@@ -21,7 +21,7 @@ app.set('trust proxy', true);
 const corsOptions = {
   origin: [
     'https://ballysgiftcards.com',
-    'http://localhost:3000',
+    'http://localhost:5173',
     'http://localhost:5002'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
