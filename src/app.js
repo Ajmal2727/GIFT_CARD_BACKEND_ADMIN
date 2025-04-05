@@ -11,7 +11,7 @@ import { transactionRoute } from "./routes/transaction.routes.js";
 import { orderRoute } from "./routes/orders.routes.js";
 import { notificationRoute } from "./routes/notification.routes.js";
 import { cartRouter } from "./routes/cart.routes.js";
-
+import {corsOptions} from "./constant.js"
 const app = express();
 
 // Trust proxy for correct IP and protocol detection
