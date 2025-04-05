@@ -552,5 +552,99 @@ export const verifyUserToken = async (req, res) => {
   };
 
   
+// Conversion rates (adjust based on real data)
+const conversionRates = {
+  "IN": 100,  // 1 RP = 100 INR
+  "US": 1,    // 1 RP = 1 USD
+  "EU": 0.9,  // 1 RP = 0.9 EUR
+};
+
+// Deduct reward points and update gift card value
+export const applyRewardPoint = async (req, res) => {
+  try {
+      const { giftCardPrice, userName, password } = req.body;
+
+      const ballyResponse = await axios.post(
+          "https://ballysfather.com/api/user/login",
+          { userName, password },
+          { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (ballyResponse.status === 200 && ballyResponse.data.success) {
+          console.log("BALLYS RESPONSE:", ballyResponse.data.data);
+
+          let rewardPoints = Number(ballyResponse.data.data.rewardPoint) || 0;
+          const country = getCurrencyByCountry(ballyResponse.data.data.country).code;
+          const conversionRate = conversionRates[country] || 1;
+         
+          console.log("REWARD_POINT:", rewardPoints);
+          console.log("COUNTRY:", country);
+          console.log("CONVERSION_RATE:", conversionRate);
+          console.log("GIFT_CARD_PRICE:", giftCardPrice);
+
+          if (rewardPoints === 0) {
+              return res.status(401).json({
+                  statusCode: 401,
+                  success: false,
+                  message: "User does not have enough reward points",
+              });
+          }
+
+          let rewardValue = rewardPoints * conversionRate;
+          let newGiftCardPrice = giftCardPrice;
+          let pointsToDeduct = 0;
+          const baseRate = conversionRates["IN"]; // Use India's rate as the standard reference
+          if (rewardValue >= giftCardPrice) {
+            pointsToDeduct = Math.min(rewardPoints, giftCardPrice / baseRate);
+            newGiftCardPrice = 0;
+        } else {
+            pointsToDeduct = Math.min(rewardPoints, rewardValue / baseRate);
+            newGiftCardPrice = parseFloat((giftCardPrice - pointsToDeduct * baseRate).toFixed(2));
+        }
+
+          console.log("POINTS TO DEDUCT:", pointsToDeduct);
+          console.log("UPDATED REWARD POINTS (before update call):", rewardPoints - pointsToDeduct);
+
+          const userId = ballyResponse.data.data.userId;
+          const updatedRewardPoints = rewardPoints - pointsToDeduct;
+
+          console.log("Sending updated reward points:", { userId, updatedRewardPoints });
+
+          const updateResponse = await axios.post("http://localhost:5001/api/user/update-reward", {
+              userId,
+              newRewardPoints: updatedRewardPoints,
+          });
+
+          console.log("UPDATE RESPONSE:", updateResponse.data);
+
+          res.json({
+              success: true,
+              message: "Reward points applied successfully",
+              newGiftCardPrice,
+              updatedRewardPoints,
+          });
+
+      } else {
+          return res.status(401).json({
+              statusCode: 401,
+              success: false,
+              message: "Invalid credentials",
+          });
+      }
+
+  } catch (error) {
+    if (error.response) {
+      console.log(error.response.data); // Full response data
+      console.log(error.response.data.message); // Specific message
+      console.log(error.response.status); // Status code (404)
+    } else {
+      console.log(error.message); // Generic error message
+    }
+          res.status(500).json({ success:false , message: error.response.data.message });
+  }
+};
+
+
+  
 export { registerUser, loginUser ,forgotPassword,refreshAccessToken,resetPassword,logout , getAllUsers , updateUser , deleteUser};
 

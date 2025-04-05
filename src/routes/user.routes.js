@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser, forgotPassword ,refreshAccessToken,resetPassword,logout , getAllUsers , updateUser ,deleteUser, verifyUserToken} from '../controllers/user.controller.js'
+import { registerUser, loginUser, forgotPassword ,refreshAccessToken,resetPassword,logout , getAllUsers , updateUser ,deleteUser, verifyUserToken,applyRewardPoint} from '../controllers/user.controller.js'
 import { verifyToken } from "../middleware/auth.middleware.js";
 
 export const userRoute = Router();
@@ -15,6 +15,7 @@ userRoute.route('/update-user/:id').put(updateUser);
 userRoute.route('/delete-user/:id').delete(deleteUser);
 userRoute.route('/get-all-users').get(getAllUsers);
 userRoute.route('/verify-token/:token').get(verifyUserToken);
+userRoute.route('/apply-reward').post(applyRewardPoint);
 
 
 // protected routes

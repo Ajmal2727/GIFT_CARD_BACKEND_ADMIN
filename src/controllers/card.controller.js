@@ -4,7 +4,7 @@ import Card from "../models/card.model.js"
 
 export const createCard = async (req, res) => {
     try {
-      const { name, desc, price, code, quantity, categories } = req.body;
+      const { name, desc, price, quantity, categories } = req.body;
       const cardImg = req?.file?.path;
   
       // Validate required fields
@@ -38,7 +38,6 @@ export const createCard = async (req, res) => {
         name,
         desc,
         price: priceArray,
-        code,
         quantity,
         img: uploadedImage.url,
         categories,

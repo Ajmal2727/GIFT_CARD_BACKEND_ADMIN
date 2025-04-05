@@ -40,7 +40,7 @@ const countryCurrency = {
     DominicanRepublic: { code: "DOP", symbol: "$" },
     Egypt: { code: "EGP", symbol: "£" },
     EuroZone: { code: "EUR", symbol: "€" },
-    India: { code: "INR", symbol: "₹" },
+    India: { code: "IN", symbol: "₹" },
     Indonesia: { code: "IDR", symbol: "Rp" },
     Iran: { code: "IRR", symbol: "﷼" },
     Iraq: { code: "IQD", symbol: "ع.د" },
