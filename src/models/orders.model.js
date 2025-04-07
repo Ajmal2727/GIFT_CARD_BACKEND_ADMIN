@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema({
   transactionId: { type: mongoose.Schema.Types.ObjectId, ref: "Transaction", required: true },
   items: [
     {
-      _id: { type: mongoose.Schema.Types.ObjectId, ref: "Card", required: true },
+      _id: { type: mongoose.Schema.Types.ObjectId, ref: "IssuedCards", required: true },
       name: { type: String, required: true },
       price: { type: Number, required: true },
       quantity: { type: Number, required: true, min: 1 },
@@ -20,3 +20,10 @@ const orderSchema = new mongoose.Schema({
 
 const Order = mongoose.model("Order", orderSchema);
 export default Order;
+
+
+
+
+
+
+
