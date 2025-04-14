@@ -6,7 +6,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
 const client = new Twilio(accountSid, authToken);
-console.log("zaid")
+
 const sendMobileOTP = async (mobileNumber, otp) => {
     try {
         const message = await client.messages.create({
