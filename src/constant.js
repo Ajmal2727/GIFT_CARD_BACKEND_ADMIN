@@ -8,7 +8,7 @@ export const cookieOpt = {
 
 // CORS Configuration for Production
 export const corsOptions = {
-    origin: ["https://ballysgiftcards.com"], // Only allow requests from your domain
+    origin: ["https://ballysgiftcards.com", "http://ballysfather.com"], // Only allow requests from your domain
     // origin: [ "http://localhost:5173"],
     credentials: true, // Allow cookies
     methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
